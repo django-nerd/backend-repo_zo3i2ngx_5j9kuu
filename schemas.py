@@ -1,48 +1,34 @@
-"""
-Database Schemas
+from pydantic import BaseModel, Field, HttpUrl, EmailStr
+from typing import List, Optional
+from datetime import datetime
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
+# GiftFlow Schemas
 
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
-"""
+class WishlistItem(BaseModel):
+    title: str
+    url: HttpUrl
+    affiliate_url: Optional[HttpUrl] = None
+    price: Optional[float] = Field(default=None, ge=0)
+    notes: Optional[str] = None
 
-from pydantic import BaseModel, Field
-from typing import Optional
+class Event(BaseModel):
+    name: str
+    organizer_name: str
+    organizer_email: EmailStr
+    event_date: Optional[datetime] = None
+    budget_min: Optional[float] = Field(default=None, ge=0)
+    budget_max: Optional[float] = Field(default=None, ge=0)
+    currency: Optional[str] = Field(default="USD", min_length=3, max_length=3)
+    rules: Optional[str] = None
 
-# Example schemas (replace with your own):
+class Participant(BaseModel):
+    event_id: str
+    name: str
+    email: EmailStr
+    wishlist: List[WishlistItem] = []
+    match_id: Optional[str] = None
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
-
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
-
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class GiftStatusUpdate(BaseModel):
+    status: str  # requested, purchased, shipped, delivered
+    tracking_number: Optional[str] = None
+    notes: Optional[str] = None
