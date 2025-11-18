@@ -54,6 +54,21 @@ def list_events():
 
 # Participants
 
+@app.get("/events/{event_id}/participants")
+def list_participants(event_id: str):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    # ensure event exists
+    ev = db["event"].find_one({"_id": to_object_id(event_id)})
+    if not ev:
+        raise HTTPException(status_code=404, detail="Event not found")
+    participants = []
+    for doc in db["participant"].find({"event_id": event_id}).sort("_id", -1):
+        doc["id"] = str(doc.pop("_id"))
+        participants.append(doc)
+    return participants
+
+
 @app.post("/events/{event_id}/participants")
 def add_participant(event_id: str, participant: Participant):
     if db is None:
